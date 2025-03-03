@@ -10,14 +10,34 @@
 // remove it before you submit. Just allows things to compile initially.
 #define UNUSED(x) (void)(x)
 
+///
+/// This creates a new BS device, ready to go
+/// \return Pointer to a new block storage device, NULL on error
+///
 block_store_t *block_store_create()
 {
-	return NULL;
+	block_store_t * b = (block_store_t*)malloc(sizeof(block_store_t));
+	if(b == NULL)
+	{
+		fprintf(stderr, "%s:%d invalid parameters\n", __FILE__, __LINE__);
+		return NULL;
+	}
+	return b;
 }
 
+///
+/// Destroys the provided block storage device
+/// This is an idempotent operation, so there is no return value
+/// \param bs BS device
+///
 void block_store_destroy(block_store_t *const bs)
 {
-	UNUSED(bs);
+	if(bs != NULL){
+		free(bs);
+	}
+	else{
+		fprintf(stderr, "%s:%d block is already free\n", __FILE__, __LINE__);
+	}
 }
 
 size_t block_store_allocate(block_store_t *const bs)
