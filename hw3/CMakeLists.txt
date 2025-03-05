@@ -7,6 +7,8 @@ set(CMAKE_CXX_FLAGS "-std=c++11 -Wall -Wextra -Wshadow -Werror -Wno-sign-compare
 include_directories("${PROJECT_SOURCE_DIR}/include")
 
 # build a dynamic library called libblock_store.so
+
+add_library(block_store SHARED src/block_store.c src/bitmap.c)
 # note that the prefix lib will be automatically added in the filename.
 
 

@@ -23,7 +23,7 @@ class GradeEnvironment : public testing::Environment {
 */
 
 int main(int argc, char **argv) {
-	// ::testing::InitGoogleTest(&argc, argv);
+	::testing::InitGoogleTest(&argc, argv);
 	// ::testing::AddGlobalTestEnvironment(new GradeEnvironment);
 	return RUN_ALL_TESTS();
 }
