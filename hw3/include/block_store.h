@@ -24,7 +24,7 @@ extern "C"
 	// This enforces a black box device, but it can be restricting
 	typedef struct block_store {
 		size_t block_number;
-		uint_8 block_data;
+		uint8_t block_data;
 	} block_store_t;
 
 	///

@@ -253,7 +253,7 @@ TEST(block_store_write_read, valid_write) {
 TEST(block_store_write_read, null_bs_write) {
 	size_t bytesWritten;
 	// Want to give buffer a valid value since we are testing bs
-	int buffer;
+	int buffer=5;
 	bytesWritten = block_store_write(NULL, 0, &buffer);
 	ASSERT_EQ(bytesWritten, 0);
 
