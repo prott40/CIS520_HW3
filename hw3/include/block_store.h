@@ -8,7 +8,7 @@ extern "C"
 
 #include <stdlib.h>
 #include <stdbool.h>
-
+#include "bitmap.h"
 	// Constants
 #define BLOCK_STORE_NUM_BLOCKS 512        // 2^9 data block
 #define BLOCK_SIZE_BYTES 32        // 2^5 BYTES per block
@@ -24,7 +24,8 @@ extern "C"
 	// This enforces a black box device, but it can be restricting
 	typedef struct block_store {
 		size_t block_number;
-		uint8_t block_data;
+		uint8_t block_data[BLOCK_STORE_NUM_BLOCKS];
+		bitmap_t *bitmap;
 	} block_store_t;
 
 	///
