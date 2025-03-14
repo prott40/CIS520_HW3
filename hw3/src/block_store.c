@@ -66,7 +66,7 @@ size_t block_store_allocate(block_store_t *const bs)
 		fprintf(stderr, "%s:%d invalid parameters\n", __FILE__, __LINE__);
 		return SIZE_MAX;
 	}
-	// get frist free memory
+	// get first free memory
 	size_t free = bitmap_ffz(bs->bitmap);
 	// check if the location is outside of memoryu
 	if(free == SIZE_MAX || free >= BLOCK_STORE_NUM_BLOCKS){
