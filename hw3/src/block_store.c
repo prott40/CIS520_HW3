@@ -68,11 +68,11 @@ size_t block_store_allocate(block_store_t *const bs)
 	}
 	// get first free memory
 	size_t free = bitmap_ffz(bs->bitmap);
-	// check if the location is outside of memoryu
+	// check if the location is outside of memory
 	if(free == SIZE_MAX || free >= BLOCK_STORE_NUM_BLOCKS){
 		return SIZE_MAX;
 	}
-	// set memmory
+	// set memory
 	bitmap_set(bs->bitmap,free);
 	// return location
 	return free;
