@@ -132,10 +132,13 @@ void block_store_release(block_store_t *const bs, const size_t block_id)
 ///
 size_t block_store_get_used_blocks(const block_store_t *const bs)
 {
+	// check for invalid parameters
 	if(!bs || !bs->bitmap){
 		fprintf(stderr, "%s:%d invalid parameters\n", __FILE__, __LINE__);
 		return SIZE_MAX;
 	}
+
+	// call bitmap_total_set to get number of blocks in use
 	return bitmap_total_set(bs->bitmap);
 }
 ///
@@ -145,10 +148,14 @@ size_t block_store_get_used_blocks(const block_store_t *const bs)
 ///
 size_t block_store_get_free_blocks(const block_store_t *const bs)
 {
+	// check for invalid parameters
 	if(!bs || !bs->bitmap){
 		fprintf(stderr, "%s:%d invalid parameters\n", __FILE__, __LINE__);
 		return SIZE_MAX;
 	}
+
+	// call block_store_get_used_blocks, and its difference with BLOCK_STORE_NUM_BLOCKS
+	// is the number of free blocks
 	size_t used = block_store_get_used_blocks(bs);
 	return BLOCK_STORE_NUM_BLOCKS - used;
 }
@@ -162,20 +169,68 @@ size_t block_store_get_total_blocks()
 	return BLOCK_STORE_NUM_BLOCKS;
 }
 
+///
+/// Reads data from the specified block and writes it to the designated buffer
+/// \param bs BS device
+/// \param block_id Source block id
+/// \param buffer Data buffer to write to
+/// \return Number of bytes read, 0 on error
+///
 size_t block_store_read(const block_store_t *const bs, const size_t block_id, void *buffer)
 {
-	UNUSED(bs);
-	UNUSED(block_id);
-	UNUSED(buffer);
-	return 0;
+	// check for valid block pointer
+	if(!bs || !bs->bitmap || !buffer)
+	{
+                fprintf(stderr, "%s:%d invalid parameters\n", __FILE__, __LINE__);
+                return 0;
+        }
+	// check for valid block id
+        if(block_id >= BLOCK_STORE_NUM_BLOCKS)
+	{
+                fprintf(stderr, "%s:%d block id is invalid\n", __FILE__, __LINE__);
+                return 0;
+        }
+
+	// determining how many bytes to offset in the block_data array
+	size_t byte_offset = block_id * BLOCK_SIZE_BYTES;
+
+	// copies (i.e. reads) the memory in block_data at the offset into buffer
+	memcpy(buffer, bs->block_data + byte_offset, BLOCK_SIZE_BYTES);
+
+	// if successful, should've read one block from the device
+	return BLOCK_SIZE_BYTES;
 }
 
+///
+/// Reads data from the specified buffer and writes it to the designated block
+/// \param bs BS device
+/// \param block_id Destination block id
+/// \param buffer Data buffer to read from
+/// \return Number of bytes written, 0 on error
+///
 size_t block_store_write(block_store_t *const bs, const size_t block_id, const void *buffer)
 {
-	UNUSED(bs);
-	UNUSED(block_id);
-	UNUSED(buffer);
-	return 0;
+        // check for valid block pointer
+        if(!bs || !bs->bitmap || !buffer)
+        {
+                fprintf(stderr, "%s:%d invalid parameters\n", __FILE__, __LINE__);
+                return 0;
+        }
+        // check for valid block id
+        if(block_id >= BLOCK_STORE_NUM_BLOCKS)
+        {
+                fprintf(stderr, "%s:%d block id is invalid\n", __FILE__, __LINE__);
+                return 0;
+        }
+
+	// determining how many bytes to offset in the block_data array
+	size_t byte_offset = block_id * BLOCK_SIZE_BYTES;
+
+    	// copies (i.e. writes) the memory in the buffer into block_data at the offset
+    	memcpy(bs->block_data + byte_offset, buffer, BLOCK_SIZE_BYTES);
+	
+	// if successful, should've written one block to the device
+    	return BLOCK_SIZE_BYTES;
 }
 
 block_store_t *block_store_deserialize(const char *const filename)
