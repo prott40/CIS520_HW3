@@ -269,7 +269,7 @@ block_store_t *block_store_deserialize(const char *const filename)
 		return NULL;
 	}
 
-	// Allocate memory for the bitmap if it's not already allocated
+	// Allocate memory for the bitmap
 	bs->bitmap = bitmap_create(BITMAP_NUM_BLOCKS);
 	if (bs->bitmap == NULL) {
 		free(bs);
@@ -287,7 +287,6 @@ block_store_t *block_store_deserialize(const char *const filename)
 		return NULL;
 	}
 
-	// Close the file after reading the data
 	fclose(file);
 
 	// Return the deserialized block store
@@ -327,7 +326,7 @@ size_t block_store_serialize(const block_store_t *const bs, const char *const fi
 
 	// Serialize the bitmap using bitmap_export to get the raw data
 	if (bs->bitmap != NULL) {
-		const uint8_t* bitmap_data = bitmap_export(bs->bitmap);  // This should give access to the raw bitmap data
+		const uint8_t* bitmap_data = bitmap_export(bs->bitmap);  //Gives access to the raw bitmap data
 		if (bitmap_data != NULL) {
 			written = fwrite(bitmap_data, sizeof(uint8_t), BITMAP_NUM_BLOCKS, file);
 			if (written != BITMAP_NUM_BLOCKS) {
@@ -350,7 +349,6 @@ size_t block_store_serialize(const block_store_t *const bs, const char *const fi
 		}
 	}
 
-	// Close the file
 	fclose(file);
 
 	return bytesWritten; // Return the total bytes written to the file
