@@ -235,13 +235,123 @@ size_t block_store_write(block_store_t *const bs, const size_t block_id, const v
 
 block_store_t *block_store_deserialize(const char *const filename)
 {
-	UNUSED(filename);
-	return NULL;
+	if (filename == NULL) {
+		return NULL;
+	}
+
+	// Open the file for reading in binary mode
+	FILE* file = fopen(filename, "rb");
+	if (file == NULL) {
+		fprintf(stderr, "Failed to open file for deserialization: %s\n", filename);
+		return NULL;
+	}
+
+	// Allocate memory for the new block store
+	block_store_t* bs = (block_store_t*)malloc(sizeof(block_store_t));
+	if (bs == NULL) {
+		fclose(file);
+		return NULL;
+	}
+
+	// Read block_number from the file
+	size_t read = fread(&bs->block_number, sizeof(size_t), 1, file);
+	if (read != 1) {
+		free(bs);
+		fclose(file);
+		return NULL;
+	}
+
+	// Read block_data (BLOCK_STORE_NUM_BLOCKS bytes) from the file
+	read = fread(bs->block_data, sizeof(uint8_t), BLOCK_STORE_NUM_BLOCKS, file);
+	if (read != BLOCK_STORE_NUM_BLOCKS) {
+		free(bs);
+		fclose(file);
+		return NULL;
+	}
+
+	// Allocate memory for the bitmap if it's not already allocated
+	bs->bitmap = bitmap_create(BITMAP_NUM_BLOCKS);
+	if (bs->bitmap == NULL) {
+		free(bs);
+		fclose(file);
+		return NULL;
+	}
+
+	// Read the bitmap data from the file
+	uint8_t* bitmap_data = (uint8_t*)bitmap_export(bs->bitmap);
+	read = fread(bitmap_data, sizeof(uint8_t), BITMAP_NUM_BLOCKS, file);
+	if (read != BITMAP_NUM_BLOCKS) {
+		bitmap_destroy(bs->bitmap);
+		free(bs);
+		fclose(file);
+		return NULL;
+	}
+
+	// Close the file after reading the data
+	fclose(file);
+
+	// Return the deserialized block store
+	return bs;
 }
 
 size_t block_store_serialize(const block_store_t *const bs, const char *const filename)
 {
-	UNUSED(bs);
-	UNUSED(filename);
-	return 0;
+	if (bs == NULL || filename == NULL) {
+		return 0;
+	}
+
+	// Open file for writing in binary mode
+	FILE* file = fopen(filename, "wb");
+	if (file == NULL) {
+		fprintf(stderr, "Failed to open file for serialization: %s\n", filename);
+		return 0;
+	}
+
+	size_t bytesWritten = 0;
+
+	// Write block_number (size_t) to the file
+	size_t written = fwrite(&bs->block_number, sizeof(size_t), 1, file);
+	if (written != 1) {
+		fclose(file);
+		return 0;
+	}
+	bytesWritten += sizeof(size_t);
+
+	// Write the block_data (BLOCK_STORE_NUM_BLOCKS bytes) to the file
+	written = fwrite(bs->block_data, sizeof(uint8_t), BLOCK_STORE_NUM_BLOCKS, file);
+	if (written != BLOCK_STORE_NUM_BLOCKS) {
+		fclose(file);
+		return 0;
+	}
+	bytesWritten += BLOCK_STORE_NUM_BLOCKS;
+
+	// Serialize the bitmap using bitmap_export to get the raw data
+	if (bs->bitmap != NULL) {
+		const uint8_t* bitmap_data = bitmap_export(bs->bitmap);  // This should give access to the raw bitmap data
+		if (bitmap_data != NULL) {
+			written = fwrite(bitmap_data, sizeof(uint8_t), BITMAP_NUM_BLOCKS, file);
+			if (written != BITMAP_NUM_BLOCKS) {
+				fclose(file);
+				return 0;
+			}
+			bytesWritten += BITMAP_NUM_BLOCKS;
+		}
+	}
+
+	// Pad the file to the expected size (BLOCK_STORE_NUM_BYTES) if needed
+	size_t totalSize = BLOCK_STORE_NUM_BYTES;
+	if (bytesWritten < totalSize) {
+		size_t padding = totalSize - bytesWritten;
+		uint8_t* zeroBuffer = (uint8_t*)calloc(padding, sizeof(uint8_t)); // Allocate zero-filled buffer
+		if (zeroBuffer != NULL) {
+			fwrite(zeroBuffer, sizeof(uint8_t), padding, file);
+			bytesWritten += padding;
+			free(zeroBuffer);
+		}
+	}
+
+	// Close the file
+	fclose(file);
+
+	return bytesWritten; // Return the total bytes written to the file
 }
