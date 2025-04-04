@@ -233,6 +233,11 @@ size_t block_store_write(block_store_t *const bs, const size_t block_id, const v
     	return BLOCK_SIZE_BYTES;
 }
 
+///
+/// Reads data from the specified file and writes it to the designated block store
+/// \param filename the name of the file to read information from
+/// \return the block store
+///
 block_store_t *block_store_deserialize(const char *const filename)
 {
 	if (filename == NULL) {
@@ -261,7 +266,7 @@ block_store_t *block_store_deserialize(const char *const filename)
 		return NULL;
 	}
 
-	// Read block_data (BLOCK_STORE_NUM_BLOCKS bytes) from the file
+	// Read block_data from the file
 	read = fread(bs->block_data, sizeof(uint8_t), BLOCK_STORE_NUM_BLOCKS, file);
 	if (read != BLOCK_STORE_NUM_BLOCKS) {
 		free(bs);
@@ -293,6 +298,12 @@ block_store_t *block_store_deserialize(const char *const filename)
 	return bs;
 }
 
+///
+/// Reads data from the specified block and writes it to the designated file
+/// \param bs BS device
+/// \param filename the name of the file to save to
+/// \return Number of bytes written, 0 on error
+///
 size_t block_store_serialize(const block_store_t *const bs, const char *const filename)
 {
 	if (bs == NULL || filename == NULL) {
@@ -308,7 +319,7 @@ size_t block_store_serialize(const block_store_t *const bs, const char *const fi
 
 	size_t bytesWritten = 0;
 
-	// Write block_number (size_t) to the file
+	// Write block_number to the file
 	size_t written = fwrite(&bs->block_number, sizeof(size_t), 1, file);
 	if (written != 1) {
 		fclose(file);
@@ -316,7 +327,7 @@ size_t block_store_serialize(const block_store_t *const bs, const char *const fi
 	}
 	bytesWritten += sizeof(size_t);
 
-	// Write the block_data (BLOCK_STORE_NUM_BLOCKS bytes) to the file
+	// Write the block_data to the file
 	written = fwrite(bs->block_data, sizeof(uint8_t), BLOCK_STORE_NUM_BLOCKS, file);
 	if (written != BLOCK_STORE_NUM_BLOCKS) {
 		fclose(file);
@@ -337,7 +348,7 @@ size_t block_store_serialize(const block_store_t *const bs, const char *const fi
 		}
 	}
 
-	// Pad the file to the expected size (BLOCK_STORE_NUM_BYTES) if needed
+	// Pad the file to the expected size
 	size_t totalSize = BLOCK_STORE_NUM_BYTES;
 	if (bytesWritten < totalSize) {
 		size_t padding = totalSize - bytesWritten;
